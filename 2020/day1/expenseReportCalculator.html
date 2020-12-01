@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+
+</head>
 <style>
     body {
         color: #00e900;
@@ -83,16 +90,26 @@
             }
             typeWriter() {
                 if (this.textIndex < this.buffer.length) {
+                    // Don't bother writing a </br> one character at a time, instead write the entire tag, then wait for 20 times longer than normal before continuing to type
                     if (this.buffer.substring(this.textIndex, this.textIndex + 4) == "<br>") {
                         this.console.innerHTML += "<br>";
                         this.textIndex += 4;
                         setTimeout(this.typeWriter.bind(this), this.speed * 20);
                     } else {
-                        this.console.innerHTML += this.buffer.charAt(this.textIndex);
+                        ;
+                        var character = this.buffer.charAt(this.textIndex);
+                        this.console.innerHTML += character;
                         this.textIndex++;
-                        setTimeout(this.typeWriter.bind(this), this.speed);
+                        if (character == ":") {
+                            setTimeout(this.typeWriter.bind(this), this.speed * 30)
+                        } else if (character == ".") {
+                            setTimeout(this.typeWriter.bind(this), this.speed * 10)
+                        } else {
+                            setTimeout(this.typeWriter.bind(this), this.speed)
+                        }
                     }
                 } else {
+                    //After buffer is exhausted, reset the fake console
                     this.buffer = "";
                     this.textIndex = 0;
                     this.speed = 50;
@@ -100,6 +117,7 @@
                 }
             }
             clear() {
+                // Reset the fake console, and empty the inner html
                 this.console.innerHTML = "";
                 this.buffer = "";
                 this.textIndex = 0;
@@ -107,6 +125,7 @@
                 this.isTyping = false;
             }
             log(str) {
+                //Add characters to the buffer, and if the typewriter hasn't been started yet, start it
                 this.buffer = this.buffer + str + "<br>";
                 if (!this.isTyping) {
                     this.isTyping = true;
@@ -123,11 +142,11 @@
             var numberOfEntriesButtons = document.getElementsByName("numberOfEntries")
             var numberOfEntries;
 
-
             //Clear fake console\
             fakeConsole.clear()
-            fakeConsole.log("Starting analysis of expense report")
+            fakeConsole.log("Starting analysis of expense report...")
 
+            // Read the radio buttons and send a message if neither have been selected
             var found = false;
             for (var i = 0; i < numberOfEntriesButtons.length; i++) {
                 if (numberOfEntriesButtons[i].checked) {
@@ -150,17 +169,21 @@
             }
             expenseReader.readAsText(expenseReport);
             expenseReader.onload = function () {
+                //Split the file into an array of numbers
                 data = expenseReader.result.split("\n").map(Number);
                 fakeConsole.log("File read successful, beginning analysis...")
                 if (numberOfEntries == 2) {
+                    //If the user selected a sum of two, use two for loops to bruteforce the answer
                     outerLoop: for (var i = 0; i < data.length; i++) {
                         for (var j = 0; j < data.length; j++) {
                             if (data[i] + data[j] === 2020) {
-                                fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " = ", data[i] +
+                                fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " = ", data[
+                                        i] +
                                     data[
                                         j]
                                 ].join(''))
-                                fakeConsole.log(["Answer: ", data[i], " * ", data[j], " = ", data[i] * data[j]]
+                                fakeConsole.log(["Answer: ", data[i], " * ", data[j], " = ", data[i] * data[
+                                        j]]
                                     .join(''))
                                 break outerLoop;
                             }
@@ -168,11 +191,13 @@
                     }
                 }
                 else if (numberOfEntries == 3) {
+                    //If the user selected a sum of two, use three for loops to bruteforce the answer
                     outerLoop: for (var i = 0; i < data.length; i++) {
                         for (var j = 0; j < data.length; j++) {
                             for (var k = 0; k < data.length; k++) {
                                 if (data[i] + data[j] + data[k] === 2020) {
-                                    fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " + ", data[
+                                    fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " + ",
+                                        data[
                                             k],
                                         " = ", data[i] + data[j] + data[k]
                                     ].join(''))
