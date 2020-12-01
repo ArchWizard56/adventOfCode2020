@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<style>
+    body {
+        color: #00e900;
+        background-color: #202020;
+    }
+
+    .title {
+        text-align: center;
+        padding-top: 2%;
+        padding-bottom: 5%;
+    }
+
+    .content {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    h3 {
+        text-align: center;
+        padding: 3%
+    }
+
+    .numberSelector {
+        text-align: center;
+    }
+
+    .console {
+        width: 100%;
+        background-color: #303030;
+        min-height: 10rem;
+        border-radius: 1rem
+    }
+
+    .inputsWithSpace {
+        margin: 10%;
+    }
+
+    input[type="radio"] {
+        margin: 2rem;
+    }
+
+    .consoleText {
+        padding: 1rem;
+        font-family: monospace;
+    }
+</style>
+
+<body>
+    <h1 class="title">Expense Report Calculator</h1>
+    <div class="content">
+        <div class="file-selector">
+            <h3>Upload your expense report:</h3>
+            <input type="file" id="expenseReport" />
+        </div>
+        <div class="control-panel">
+            <div class="numberSelector">
+                <h3>Select the number of entries to sum</h3>
+                <input type="radio" name="numberOfEntries" value="2">2</input>
+                <input type="radio" name="numberOfEntries" value="3">3</input>
+                <br>
+                <input class="inputsWithSpace" type="button" name="SUM" value="SUM" onclick="SUM()"></input>
+            </div>
+            <div class="output">
+                <h3>Calculator output:</h3>
+                <div class="console">
+                    <div class="consoleText">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FakeConsole {
+            constructor(console) {
+                this.textIndex = 0;
+                this.console = console;
+                this.buffer = "";
+                this.speed = 50;
+                this.isTyping = false;
+            }
+            typeWriter() {
+                if (this.textIndex < this.buffer.length) {
+                    if (this.buffer.substring(this.textIndex, this.textIndex + 4) == "<br>") {
+                        this.console.innerHTML += "<br>";
+                        this.textIndex += 4;
+                        setTimeout(this.typeWriter.bind(this), this.speed * 20);
+                    } else {
+                        this.console.innerHTML += this.buffer.charAt(this.textIndex);
+                        this.textIndex++;
+                        setTimeout(this.typeWriter.bind(this), this.speed);
+                    }
+                } else {
+                    this.buffer = "";
+                    this.textIndex = 0;
+                    this.speed = 50;
+                    this.isTyping = false;
+                }
+            }
+            clear() {
+                this.console.innerHTML = "";
+                this.buffer = "";
+                this.textIndex = 0;
+                this.speed = 50;
+                this.isTyping = false;
+            }
+            log(str) {
+                this.buffer = this.buffer + str + "<br>";
+                if (!this.isTyping) {
+                    this.isTyping = true;
+                    this.typeWriter()
+                }
+            }
+        }
+
+        function SUM() {
+
+            // Define needed objects
+            var expenseReport = document.getElementById("expenseReport").files[0];
+            var fakeConsole = new FakeConsole(document.getElementsByClassName("consoleText")[0])
+            var numberOfEntriesButtons = document.getElementsByName("numberOfEntries")
+            var numberOfEntries;
+
+
+            //Clear fake console\
+            fakeConsole.clear()
+            fakeConsole.log("Starting analysis of expense report")
+
+            var found = false;
+            for (var i = 0; i < numberOfEntriesButtons.length; i++) {
+                if (numberOfEntriesButtons[i].checked) {
+                    numberOfEntries = numberOfEntriesButtons[i].value;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                fakeConsole.log("Error: Select the number of entries to sum...")
+                return
+            }
+
+            // Read file
+            var expenseReader = new FileReader();
+            fakeConsole.log("Reading your file...")
+            if (!expenseReport) {
+                fakeConsole.log("Error: Please select a file")
+                return
+            }
+            expenseReader.readAsText(expenseReport);
+            expenseReader.onload = function () {
+                data = expenseReader.result.split("\n").map(Number);
+                fakeConsole.log("File read successful, beginning analysis...")
+                if (numberOfEntries == 2) {
+                    outerLoop: for (var i = 0; i < data.length; i++) {
+                        for (var j = 0; j < data.length; j++) {
+                            if (data[i] + data[j] === 2020) {
+                                fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " = ", data[i] +
+                                    data[
+                                        j]
+                                ].join(''))
+                                fakeConsole.log(["Answer: ", data[i], " * ", data[j], " = ", data[i] * data[j]]
+                                    .join(''))
+                                break outerLoop;
+                            }
+                        }
+                    }
+                }
+                else if (numberOfEntries == 3) {
+                    outerLoop: for (var i = 0; i < data.length; i++) {
+                        for (var j = 0; j < data.length; j++) {
+                            for (var k = 0; k < data.length; k++) {
+                                if (data[i] + data[j] + data[k] === 2020) {
+                                    fakeConsole.log(["Found solution: ", data[i], " + ", data[j], " + ", data[
+                                            k],
+                                        " = ", data[i] + data[j] + data[k]
+                                    ].join(''))
+                                    fakeConsole.log(["Answer: ", data[i], " * ", data[j], " * ", data[
+                                        k], " = ", data[i] * data[j] * data[k]].join(''))
+                                    break outerLoop;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>
