@@ -48,10 +48,34 @@
         margin: 2rem;
     }
 
-    .consoleText {
+    .consoleBorders {
         padding: 1rem;
-        font-family: monospace;
     }
+
+    .consoleText {
+        font-family: monospace;
+        display: inline;
+    }
+
+    #cursor {
+        display: inline-block;
+        vertical-align: middle;
+        width: 3px;
+        height: 10pt;
+        background-color: #00e900;
+    }
+    .cursorIsNotTyping {
+        animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+	from, to { 
+		background-color: transparent 
+	}
+	50% { 
+        background-color: #00e900;
+	}
+}
+
 </style>
 
 <body>
@@ -72,7 +96,10 @@
             <div class="output">
                 <h3>Calculator output:</h3>
                 <div class="console">
-                    <div class="consoleText">
+                    <div class="consoleBorders">
+                        <div class="consoleText">
+                        </div>
+                        <div id="cursor" class="cursorIsNotTyping"></div>
                     </div>
                 </div>
             </div>
@@ -99,9 +126,11 @@
             typeWriter() {
                 if (this.textIndex < this.buffer.length) {
                     var audioFiles = document.getElementsByClassName("typingsounds")
+                    var cursor = document.getElementById("cursor");
                     // Don't bother writing a </br> one character at a time, instead write the entire tag, then wait for 20 times longer than normal before continuing to type
                     if (this.buffer.substring(this.textIndex, this.textIndex + 4) == "<br>") {
                         for (var i = 0; i < audioFiles.length; i++) {
+                            cursor.classList.add("cursorIsNotTyping");
                             audioFiles[i].pause()
                         }
                         this.console.innerHTML += "<br>";
@@ -109,6 +138,7 @@
                         setTimeout(this.typeWriter.bind(this), this.speed * 20);
                     } else {
                         audioFiles[Math.floor(Math.random() * audioFiles.length)].play()
+                        cursor.classList.remove("cursorIsNotTyping");
                         var character = this.buffer.charAt(this.textIndex);
                         this.console.innerHTML += character;
                         this.textIndex++;
