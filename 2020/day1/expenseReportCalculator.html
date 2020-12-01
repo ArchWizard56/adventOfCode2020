@@ -146,11 +146,12 @@
             }
         }
 
+        var fakeConsole = new FakeConsole(document.getElementsByClassName("consoleText")[0])
+
         function SUM() {
 
             // Define needed objects
             var expenseReport = document.getElementById("expenseReport").files[0];
-            var fakeConsole = new FakeConsole(document.getElementsByClassName("consoleText")[0])
             var numberOfEntriesButtons = document.getElementsByName("numberOfEntries")
             var numberOfEntries;
 
