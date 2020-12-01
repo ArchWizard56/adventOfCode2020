@@ -15,8 +15,8 @@ var solve = (err, data) => {
   //Split the parsed data into array of numbers
   data = data.split("\n").map(Number);
 
-  // Loop over the data twice to find the numbers that add to 2020
-  // Then, multiply those two numbers and return the value
+  // Loop over the data thrice to find the numbers that add to 2020
+  // Then, multiply those numbers and return the value
   for (var i = 0; i<data.length;i++){
       for (var j = 0; j<data.length;j++){
         for (var k = 0; k<data.length;k++){
