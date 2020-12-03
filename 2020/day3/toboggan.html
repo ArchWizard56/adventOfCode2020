@@ -67,7 +67,9 @@
                 sollicitudin nulla aliquam. Morbi tincidunt tellus nec nibh faucibus porttitor.
             </div>
             <div id="sledControls" class="hidden">
-                Enter the slope of your trip: <br>
+                <input type="checkbox" onclick="updateText(this)" name="ToggleMultiple">Calculate multiple
+                slopes</input>
+                <p id="helptext">Enter the slope of your trip:</p> <br>
                 <input name="slope" , placeholder="x,y"></input> <input type="button" name="CalculateRoute"
                     value="Calculate Route" onclick="calculateRoute()"></input>
             </div>
@@ -88,18 +90,20 @@
             return p.innerHTML;
         }
 
-        function calculateRoute() {
-            // Get slope
-            var slopeRE = /(\d*),(\d*)/
-            var slopeText = document.getElementsByName("slope")[0].value
-            var parsedSlope = slopeText.match(slopeRE)
-            if (parsedSlope == null) {
-                alert("Please enter a valid slope")
-                return
+        function updateText(checkbox) {
+            if (checkbox.checked) {
+                document.getElementById("helptext").innerHTML = "Enter the slopes to check:"
+                document.getElementsByName("slope")[0].placeholder = "(x,y),(x,y)..."
+                document.getElementsByName("CalculateRoute")[0].value = "Calculate Routes"
+            } else {
+                document.getElementById("helptext").innerHTML = "Enter the slope of your trip:"
+                document.getElementsByName("slope")[0].placeholder = "x,y"
+                document.getElementsByName("CalculateRoute")[0].value = "Calculate Route"
             }
-            var xSlope = Number(parsedSlope[1])
-            var ySlope = Number(parsedSlope[2])
 
+        }
+
+        function solveTreeMap(xSlope, ySlope) {
             // Create a matrix out of the input
             var slopeMatrix = []
             var lines = originalContent.split("\n")
@@ -110,7 +114,7 @@
 
             // Calculate the route and count the number of trees hit
             var treesHit = 0;
-            for (var i = 0; ySlope * i  < slopeMatrix.length - 1; i++) {
+            for (var i = 0; ySlope * i < slopeMatrix.length - 1; i++) {
                 if (slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] == ".") {
                     slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] =
                         "<span class='path'>.</span>"
@@ -131,7 +135,48 @@
                     return item.join("")
                 }).join("\n")
             }
-            alert("This route hits " + treesHit.toString() + " trees")
+            return treesHit
+        }
+
+        function calculateRoute() {
+            // Get slope
+            var slopeText = document.getElementsByName("slope")[0].value
+            if (document.getElementsByName("ToggleMultiple")[0].checked) {
+                var slopeRE = /\((\d*),(\d*)\)/g
+                var parsedSlopes = slopeText.matchAll(slopeRE)
+                if (parsedSlopes == null) {
+                    alert("Please enter a valid set of slopes")
+                    return
+                }
+                var treesHit = {}
+                for (const slope of parsedSlopes){
+                    var x = Number(slope[1])
+                    var y = Number(slope[2])
+                    treesHit[[x,",",y].join("")] = solveTreeMap(x,y)
+                }
+                //Construct alert
+                var treeMultiple = 1;
+                var slopes = Object.keys(treesHit)
+                var message = "Results:\n";
+                for (var i = 0; i < slopes.length; i++) {
+                    message += [slopes[i], ":   ", treesHit[slopes[i]],"\n"].join("")
+                    treeMultiple *= treesHit[slopes[i]]
+                }
+                message += ("The total multiple of the tree hits is: " + treeMultiple.toString())
+                alert(message)
+            } else {
+                var slopeRE = /(\d*),(\d*)/
+                var parsedSlope = slopeText.match(slopeRE)
+                if (parsedSlope == null) {
+                    alert("Please enter a valid slope")
+                    return
+                }
+                var xSlope = Number(parsedSlope[1])
+                var ySlope = Number(parsedSlope[2])
+                var treesHit = solveTreeMap(xSlope, ySlope)
+
+                alert("This route hits " + treesHit.toString() + " trees")
+            }
         }
 
         function loadSledFile(fileInput) {
