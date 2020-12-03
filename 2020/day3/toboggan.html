@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+</head>
+<style>
+    html,
+    body {
+        background-image: url(https://coolbackgrounds.io/images/unsplash/martin-jernberg-unsplash-medium-38843106.jpg);
+        background-size: cover;
+        height: 100%;
+        margin: 0;
+        color: white;
+    }
+
+    .contentContainer {
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        height: 100%
+    }
+
+    .content {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        width: 80%;
+        background-color: #424B54;
+        height: 80%;
+        border-radius: 40px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .path {
+        color: blue;
+    }
+
+    .hit {
+        color: red;
+    }
+
+    .sledSelector {
+        display: flex;
+        justify-content: space-around;
+        font-size: smaller;
+        height: 20%;
+        flex-direction: column;
+    }
+</style>
+
+<body>
+    <div class="contentContainer">
+
+        <div class="content">
+            <h2>Toboggan GPS</h2>
+            <div id="sled" class="hidden"
+                style="text-align: center; height:60%; width: 60%; max-width: 840px; background-color: black;overflow:auto;  font-family: monospace; font-size:xx-large;">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed accumsan metus vitae purus tempor, vel
+                sollicitudin nulla aliquam. Morbi tincidunt tellus nec nibh faucibus porttitor.
+            </div>
+            <div id="sledControls" class="hidden">
+                <input type="checkbox" onclick="updateText(this)" name="ToggleMultiple">Calculate multiple
+                slopes</input>
+                <p id="helptext">Enter the slope of your trip:</p> <br>
+                <input name="slope" , placeholder="x,y"></input> <input type="button" name="CalculateRoute"
+                    value="Calculate Route" onclick="calculateRoute()"></input>
+            </div>
+            <div class="sledSelector">
+                <h3>Load your sled file:</h3>
+                <input id="sledFile" type="file" onchange="loadSledFile(this)"> </input>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        var sledbox = document.getElementById("sled")
+        var originalContent = "";
+
+        function escapeHTML(str) {
+            var p = document.createElement("p");
+            p.appendChild(document.createTextNode(str));
+            return p.innerHTML;
+        }
+
+        function updateText(checkbox) {
+            if (checkbox.checked) {
+                document.getElementById("helptext").innerHTML = "Enter the slopes to check:"
+                document.getElementsByName("slope")[0].placeholder = "(x,y),(x,y)..."
+                document.getElementsByName("CalculateRoute")[0].value = "Calculate Routes"
+            } else {
+                document.getElementById("helptext").innerHTML = "Enter the slope of your trip:"
+                document.getElementsByName("slope")[0].placeholder = "x,y"
+                document.getElementsByName("CalculateRoute")[0].value = "Calculate Route"
+            }
+
+        }
+
+        function solveTreeMap(xSlope, ySlope) {
+            // Create a matrix out of the input
+            var slopeMatrix = []
+            var lines = originalContent.split("\n")
+
+            for (var i = 0; i < lines.length; i++) {
+                slopeMatrix.push(lines[i].split(""))
+            }
+
+            // Calculate the route and count the number of trees hit
+            var treesHit = 0;
+            for (var i = 0; ySlope * i < slopeMatrix.length - 1; i++) {
+                if (slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] == ".") {
+                    slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] =
+                        "<span class='path'>.</span>"
+                } else if (slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] ==
+                    "#") {
+                    slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)] =
+                        "<span class='hit'>#</span>"
+                    treesHit++
+                } else {
+                    console.log(ySlope * i, xSlope * i % (slopeMatrix[0].length))
+                    console.log(slopeMatrix[ySlope * i][xSlope * i % (slopeMatrix[0].length)])
+                    alert("Invalid character found. Exiting...")
+                    return
+                }
+
+                // Convert the new matrix into a string and write it to the dom
+                sledbox.innerHTML = slopeMatrix.map((item) => {
+                    return item.join("")
+                }).join("\n")
+            }
+            return treesHit
+        }
+
+        function calculateRoute() {
+            // Get slope
+            var slopeText = document.getElementsByName("slope")[0].value
+            if (document.getElementsByName("ToggleMultiple")[0].checked) {
+                var slopeRE = /\((\d*),(\d*)\)/g
+                var parsedSlopes = slopeText.matchAll(slopeRE)
+                if (parsedSlopes == null) {
+                    alert("Please enter a valid set of slopes")
+                    return
+                }
+                var treesHit = {}
+                for (const slope of parsedSlopes){
+                    var x = Number(slope[1])
+                    var y = Number(slope[2])
+                    treesHit[[x,",",y].join("")] = solveTreeMap(x,y)
+                }
+                //Construct alert
+                var treeMultiple = 1;
+                var slopes = Object.keys(treesHit)
+                var message = "Results:\n";
+                for (var i = 0; i < slopes.length; i++) {
+                    message += [slopes[i], ":   ", treesHit[slopes[i]],"\n"].join("")
+                    treeMultiple *= treesHit[slopes[i]]
+                }
+                message += ("The total multiple of the tree hits is: " + treeMultiple.toString())
+                alert(message)
+            } else {
+                var slopeRE = /(\d*),(\d*)/
+                var parsedSlope = slopeText.match(slopeRE)
+                if (parsedSlope == null) {
+                    alert("Please enter a valid slope")
+                    return
+                }
+                var xSlope = Number(parsedSlope[1])
+                var ySlope = Number(parsedSlope[2])
+                var treesHit = solveTreeMap(xSlope, ySlope)
+
+                alert("This route hits " + treesHit.toString() + " trees")
+            }
+        }
+
+        function loadSledFile(fileInput) {
+            var sledSelector = document.getElementsByClassName("sledSelector")[0]
+            var sledFile = document.getElementById("sledFile").files[0]
+
+            //Hide the selector
+            sledSelector.classList.remove("sledSelector")
+            sledSelector.classList.add("hidden")
+
+            //Read the file
+            var reader = new FileReader();
+            reader.readAsText(sledFile);
+            reader.onload = function () {
+
+                originalContent = escapeHTML(reader.result)
+                sledbox.innerHTML = originalContent
+                //Show the iframe
+                sledbox.classList.remove("hidden")
+                document.getElementById("sledControls").classList.remove("hidden")
+            }
+
+        }
+    </script>
+</body>
+
+</html>
